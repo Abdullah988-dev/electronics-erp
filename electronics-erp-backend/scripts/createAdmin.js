@@ -1,30 +1,25 @@
+require('dotenv').config();
+
 const bcrypt = require('bcryptjs');
-const { sql, connectDB } = require('../config/db');
+const { connectDB } = require('../config/db');
+const User = require('../models/User');
 
 async function createAdmin() {
   const email = 'admin@shop.com';
   const plainPassword = 'admin123';
 
   try {
-    const pool = await connectDB();
+    await connectDB();
 
-    // Check if admin already exists
-    const existing = await pool.request()
-      .input('email', sql.NVarChar, email)
-      .query('SELECT * FROM Users WHERE Email = @email');
-
-    if (existing.recordset.length > 0) {
+    const existing = await User.findOne({ email });
+    if (existing) {
       console.log('⚠️ Admin already exists, skipping creation.');
       process.exit(0);
     }
 
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-    await pool.request()
-      .input('email', sql.NVarChar, email)
-      .input('passwordHash', sql.NVarChar, hashedPassword)
-      .input('role', sql.NVarChar, 'Admin')
-      .query('INSERT INTO Users (Email, PasswordHash, Role) VALUES (@email, @passwordHash, @role)');
+    await User.create({ email, passwordHash: hashedPassword, role: 'Admin' });
 
     console.log('✅ Admin user created successfully!');
     console.log(`Email: ${email}`);

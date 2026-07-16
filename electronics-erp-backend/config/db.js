@@ -1,21 +1,13 @@
-const sql = require("mssql/msnodesqlv8");
+const mongoose = require('mongoose');
 
-const connectionString =
-  "Driver={ODBC Driver 17 for SQL Server};Server=(localdb)\\MSSQLLocalDB;Database=ElectronicsERP;Trusted_Connection=Yes;";
-
-const config = {
-  connectionString: connectionString,
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('✅ MongoDB Atlas Connected Successfully');
+  } catch (error) {
+    console.error('❌ MongoDB Connection Failed:', error.message);
+    process.exit(1);
+  }
 };
 
-async function connectDB() {
-  try {
-    const pool = await sql.connect(config);
-    console.log("✅ SQL Server connected successfully (LocalDB via Windows Auth)");
-    return pool;
-  } catch (err) {
-    console.error("❌ Database connection failed:", err.message);
-    throw err;
-  }
-}
-
-module.exports = { connectDB, sql };
+module.exports = { connectDB };
